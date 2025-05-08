@@ -180,29 +180,8 @@ HVTAL,ALBATROSS PORTFÖY BİRİNCİ PARA PİYASASI (TL) FONU,08.05.2025,0.001542
 # Load and process fund data
 fund_data = load_fund_data()
 
-# Display data source info
-st.sidebar.info("Data source: srtczn/compBoard GitHub repository")
-
 # Ensure Değişim column is a float (convert from string if needed)
 fund_data['Değişim'] = fund_data['Değişim'].apply(convert_to_float)
-
-# Process the "Tarih" column to ensure it's in datetime format
-try:
-    fund_data['Tarih'] = pd.to_datetime(fund_data['Tarih'], format='%d.%m.%Y')
-except:
-    try:
-        # Try alternative format
-        fund_data['Tarih'] = pd.to_datetime(fund_data['Tarih'])
-    except Exception as e:
-        st.warning(f"Date format conversion issue: {e}. Using original dates.")
-
-# Show when the data was last updated (most recent date in the dataset)
-try:
-    latest_data_date = fund_data['Tarih'].max().strftime('%d.%m.%Y')
-    st.sidebar.success(f"Son veri güncelleme: {latest_data_date}")
-except:
-    # If date conversion failed, don't display this
-    pass
 
 # Get list of fund codes and names
 fund_options = dict(zip(fund_data['Fon Kodu'], fund_data['Fon Adı']))
@@ -337,6 +316,28 @@ selected_ticker = fund_code_map[selected_display]
 latest_return = latest_returns[selected_ticker]
 fund_info = f"{fund_descriptions[selected_ticker]} (Son 1 Günlük Getiri: {latest_return:.6%})"
 st.sidebar.info(fund_info)
+
+# Display data source info
+st.sidebar.info("Data source: srtczn/compBoard GitHub repository")
+
+# Process the "Tarih" column to ensure it's in datetime format
+try:
+    fund_data['Tarih'] = pd.to_datetime(fund_data['Tarih'], format='%d.%m.%Y')
+except:
+    try:
+        # Try alternative format
+        fund_data['Tarih'] = pd.to_datetime(fund_data['Tarih'])
+    except Exception as e:
+        st.warning(f"Date format conversion issue: {e}. Using original dates.")
+
+# Show when the data was last updated (most recent date in the dataset)
+try:
+    latest_data_date = fund_data['Tarih'].max().strftime('%d.%m.%Y')
+    st.sidebar.success(f"Son veri güncelleme: {latest_data_date}")
+except:
+    # If date conversion failed, don't display this
+    pass
+
 
 # BSMV tax rate (fixed at 5%)
 bsmv_rate = 0.05
