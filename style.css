@@ -1,0 +1,56 @@
+/* Custom styles to complement the Streamlit app */
+
+/* Main container settings */
+.main {
+    padding: 2rem;
+}
+
+/* Make the sidebar more compact and styled */
+.sidebar .sidebar-content {
+    background-color: #f8f9fa;
+}
+
+/* Make number inputs more visible */
+input[type="number"] {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+}
+
+/* Improve widget label clarity */
+.stSelectbox label, .stNumberInput label {
+    font-weight: 500 !important;
+    color: #333 !important;
+}
+
+/* Make headers more prominent */
+h1, h2, h3 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .card {
+        padding: 1rem !important;
+    }
+    
+    .result-value {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* Animation for the best choice indicator */
+.best-choice {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.8;
+    }
+}
