@@ -139,30 +139,49 @@ def convert_to_float(value):
         value = value.replace('%', '')
     return float(value)
 
-# Load fund data from local CSV file
-@st.cache_data
+# Load fund data from GitHub repository
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def load_fund_data():
     try:
-        # Try to load from the funds.csv file in the same directory
-        csv_path = "funds.csv"
-        if os.path.exists(csv_path):
-            df = pd.read_csv(csv_path)
-            return df
+        # GitHub raw content URL for the funds.csv file
+        github_url = "https://raw.githubusercontent.com/srtczn/compBoard/main/funds.csv"
+        
+        response = requests.get(github_url)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        
+        # Check if we got a valid response
+        if response.status_code == 200:
+            return pd.read_csv(io.StringIO(response.text))
         else:
-            st.error(f"Fund data file not found: {csv_path}")
-            # Provide a minimal fallback dataset
-            fallback_data = """Fon Kodu,Fon Adı,Tarih,Değişim
+            st.error(f"Failed to fetch data: HTTP {response.status_code}")
+            # Try local file as fallback
+            if os.path.exists("funds.csv"):
+                st.warning("Using local funds.csv file as fallback")
+                return pd.read_csv("funds.csv")
+            else:
+                # Use minimal fallback data if all else fails
+                fallback_data = """Fon Kodu,Fon Adı,Tarih,Değişim
 HVTAL,ALBATROSS PORTFÖY BİRİNCİ PARA PİYASASI (TL) FONU,08.05.2025,0.001542316975"""
-            return pd.read_csv(io.StringIO(fallback_data))
+                st.warning("Using minimal fallback data")
+                return pd.read_csv(io.StringIO(fallback_data))
     except Exception as e:
         st.error(f"Error loading fund data: {e}")
-        # Provide a minimal fallback dataset
-        fallback_data = """Fon Kodu,Fon Adı,Tarih,Değişim
+        # Try local file as fallback
+        if os.path.exists("funds.csv"):
+            st.warning("Using local funds.csv file as fallback")
+            return pd.read_csv("funds.csv")
+        else:
+            # Use minimal fallback data if all else fails
+            fallback_data = """Fon Kodu,Fon Adı,Tarih,Değişim
 HVTAL,ALBATROSS PORTFÖY BİRİNCİ PARA PİYASASI (TL) FONU,08.05.2025,0.001542316975"""
-        return pd.read_csv(io.StringIO(fallback_data))
+            st.warning("Using minimal fallback data")
+            return pd.read_csv(io.StringIO(fallback_data))
 
 # Load and process fund data
 fund_data = load_fund_data()
+
+# Display data source info
+st.sidebar.info("Data source: srtczn/compBoard GitHub repository")
 
 # Ensure Değişim column is a float (convert from string if needed)
 fund_data['Değişim'] = fund_data['Değişim'].apply(convert_to_float)
@@ -176,6 +195,14 @@ except:
         fund_data['Tarih'] = pd.to_datetime(fund_data['Tarih'])
     except Exception as e:
         st.warning(f"Date format conversion issue: {e}. Using original dates.")
+
+# Show when the data was last updated (most recent date in the dataset)
+try:
+    latest_data_date = fund_data['Tarih'].max().strftime('%d.%m.%Y')
+    st.sidebar.success(f"Son veri güncelleme: {latest_data_date}")
+except:
+    # If date conversion failed, don't display this
+    pass
 
 # Get list of fund codes and names
 fund_options = dict(zip(fund_data['Fon Kodu'], fund_data['Fon Adı']))
@@ -537,9 +564,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Footnote
+# Footer with version and GitHub link
 st.markdown(f"""
 <div style="font-size: 0.8rem; color: {colors["dark_purple"]}; text-align: center; margin-top: 2rem;">
-    <p>YTD</p>
+    <p>Mundi Getiri Hesaplama v1.0 | <a href="https://github.com/srtczn/compBoard" target="_blank">GitHub</a></p>
 </div>
 """, unsafe_allow_html=True)
