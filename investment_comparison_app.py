@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import os
 from PIL import Image
 import matplotlib.pyplot as plt
+import locale
 
 # Set page configuration
 st.set_page_config(
@@ -139,6 +140,55 @@ def convert_to_float(value):
         value = value.replace('%', '')
     return float(value)
 
+# Function to format numbers in Turkish locale (. as thousands separator, , as decimal)
+def format_turkish(number, decimals=2):
+    """Format number with Turkish locale (1.234,56)"""
+    if number == 0:
+        return "0"
+    
+    # Get integer and decimal parts
+    if decimals > 0:
+        integer_part = int(number)
+        decimal_part = abs(number) - abs(int(number))
+        
+        # Format integer part with thousands separator
+        formatted_int = ""
+        int_str = str(abs(integer_part))
+        for i, digit in enumerate(reversed(int_str)):
+            if i > 0 and i % 3 == 0:
+                formatted_int = "." + formatted_int
+            formatted_int = digit + formatted_int
+        
+        if integer_part < 0:
+            formatted_int = "-" + formatted_int
+            
+        # Format decimal part
+        formatted_decimal = str(int(decimal_part * (10 ** decimals)))
+        # Pad with leading zeros if needed
+        formatted_decimal = formatted_decimal.zfill(decimals)
+        
+        return f"{formatted_int},{formatted_decimal}"
+    else:
+        # No decimals, just format integer
+        integer_part = int(round(number, 0))
+        formatted_int = ""
+        int_str = str(abs(integer_part))
+        for i, digit in enumerate(reversed(int_str)):
+            if i > 0 and i % 3 == 0:
+                formatted_int = "." + formatted_int
+            formatted_int = digit + formatted_int
+            
+        if integer_part < 0:
+            formatted_int = "-" + formatted_int
+            
+        return formatted_int
+
+# Function to format percentage in Turkish locale
+def format_turkish_percent(number, decimals=2):
+    """Format percentage with Turkish locale (12,34%)"""
+    formatted = format_turkish(number, decimals)
+    return f"%{formatted}"
+
 # Load fund data from GitHub repository
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def load_fund_data():
@@ -186,9 +236,6 @@ fund_data['Değişim'] = fund_data['Değişim'].apply(convert_to_float)
 # Get list of fund codes and names
 fund_options = dict(zip(fund_data['Fon Kodu'], fund_data['Fon Adı']))
 ticker_list = sorted(fund_data['Fon Kodu'].unique())
-
-# Get latest date in the data
-latest_date = fund_data['Tarih'].max()
 
 # Create a dictionary for fund returns (using Fon Kodu as key)
 latest_returns = dict(zip(fund_data['Fon Kodu'], fund_data['Değişim']))
@@ -314,11 +361,10 @@ selected_ticker = fund_code_map[selected_display]
 
 # Get the latest daily return for the selected fund
 latest_return = latest_returns[selected_ticker]
-fund_info = f"{fund_descriptions[selected_ticker]} (Son 1 Günlük Getiri: {latest_return:.6%})"
+# Format the percentage with 6 decimal places in Turkish format
+formatted_return_percent = format_turkish_percent(latest_return * 100, 6)
+fund_info = f"{fund_descriptions[selected_ticker]} (Son 1 Günlük Getiri: {formatted_return_percent})"
 st.sidebar.info(fund_info)
-
-# Display data source info
-st.sidebar.info("Data source: srtczn/compBoard GitHub repository")
 
 # Process the "Tarih" column to ensure it's in datetime format
 try:
@@ -330,6 +376,11 @@ except:
     except Exception as e:
         st.warning(f"Date format conversion issue: {e}. Using original dates.")
 
+# Show data source and update date at the end of the sidebar
+st.sidebar.markdown("---")
+st.sidebar.markdown("<h3 class='section-header'>Veri Kaynağı</h3>", unsafe_allow_html=True)
+st.sidebar.info("Data source: srtczn/compBoard GitHub repository")
+
 # Show when the data was last updated (most recent date in the dataset)
 try:
     latest_data_date = fund_data['Tarih'].max().strftime('%d.%m.%Y')
@@ -337,7 +388,6 @@ try:
 except:
     # If date conversion failed, don't display this
     pass
-
 
 # BSMV tax rate (fixed at 5%)
 bsmv_rate = 0.05
@@ -419,19 +469,19 @@ with col1:
     st.markdown(f"""
     <div class="card product-a-card">
         <h3 class="card-title">Gecelik Mevduat</h3>
-        <div class="result-value">₺{net_return_a:.2f}</div>
+        <div class="result-value">₺{format_turkish(net_return_a)}</div>
         <div class="result-label">Toplam Getiri</div>
-        <div class="result-value">₺{final_balance_a:.2f}</div>
+        <div class="result-value">₺{format_turkish(final_balance_a)}</div>
         <div class="result-label">Net Dönüş Tutarı</div>
         <div class="divider"></div>
         <div class="result-label">Detaylar:</div>
-        <div>Brüt Geri Dönüş Tutarı: ₺{gross_return_a:.2f}</div>
-        <div>Mundi Komisyonu: -₺{commission_a:.2f}</div>
-        <div>BSMV: -₺{bsmv_a:.2f}</div>
-        <div>Stopaj: -₺{tax_a:.2f}</div>
+        <div>Brüt Geri Dönüş Tutarı: ₺{format_turkish(gross_return_a)}</div>
+        <div>Mundi Komisyonu: -₺{format_turkish(commission_a)}</div>
+        <div>BSMV: -₺{format_turkish(bsmv_a)}</div>
+        <div>Stopaj: -₺{format_turkish(tax_a)}</div>
         <div class="divider"></div>
         <div class="percent-compare">
-            En iyi getiri ile karşılaştırma: %{percentage_a:.1f}
+            En iyi getiri ile karşılaştırma: {format_turkish_percent(percentage_a, 1)}
             <p>{" ★ EN İYİ GETİRİ" if best_product == "Gecelik Mevduat" else ""}</p>
         </div>
     </div>
@@ -442,19 +492,19 @@ with col2:
     st.markdown(f"""
     <div class="card product-b-card">
         <h3 class="card-title">Gecelik Repo</h3>
-        <div class="result-value">₺{net_return_b:.2f}</div>
+        <div class="result-value">₺{format_turkish(net_return_b)}</div>
         <div class="result-label">Toplam Getiri</div>
-        <div class="result-value">₺{final_balance_b:.2f}</div>
+        <div class="result-value">₺{format_turkish(final_balance_b)}</div>
         <div class="result-label">Net Dönüş Tutarı</div>
         <div class="divider"></div>
         <div class="result-label">Detaylar:</div>
-        <div>Brüt Geri Dönüş Tutarı: ₺{gross_return_b:.2f}</div>
-        <div>Komisyon: -₺{commission_b:.2f}</div>
-        <div>BSMV: -₺{bsmv_b:.2f}</div>
-        <div>Stopaj: -₺{tax_b:.2f}</div>
+        <div>Brüt Geri Dönüş Tutarı: ₺{format_turkish(gross_return_b)}</div>
+        <div>Komisyon: -₺{format_turkish(commission_b)}</div>
+        <div>BSMV: -₺{format_turkish(bsmv_b)}</div>
+        <div>Stopaj: -₺{format_turkish(tax_b)}</div>
         <div class="divider"></div>
         <div class="percent-compare">
-            En iyi getiri ile karşılaştırma: %{percentage_b:.1f} 
+            En iyi getiri ile karşılaştırma: {format_turkish_percent(percentage_b, 1)}
             <p>{" ★ EN İYİ GETİRİ" if best_product == "Gecelik Repo" else ""}</p>
         </div>
     </div>
@@ -465,17 +515,17 @@ with col3:
     st.markdown(f"""
     <div class="card fund-card">
         <h3 class="card-title">Fon: {selected_ticker}</h3>
-        <div class="result-value">₺{fund_return:.2f}</div>
+        <div class="result-value">₺{format_turkish(fund_return)}</div>
         <div class="result-label">Toplam Getiri</div>
-        <div class="result-value">₺{final_balance_fund:.2f}</div>
+        <div class="result-value">₺{format_turkish(final_balance_fund)}</div>
         <div class="result-label">Net Dönüş Tutarı</div>
         <div class="divider"></div>
         <div class="result-label">Detaylar:</div>
-        <div>Günlük Getiri: {latest_return:.6%}</div>
-        <div>Bileşik Getiri: {(1 + latest_return) ** duration_days - 1:.2%}</div>
+        <div>Günlük Getiri: {format_turkish_percent(latest_return * 100, 6)}</div>
+        <div>Bileşik Getiri: {format_turkish_percent(((1 + latest_return) ** duration_days - 1) * 100, 2)}</div>
         <div class="divider"></div>
         <div class="percent-compare">
-            En iyi getiri ile karşılaştırma: %{percentage_fund:.1f} 
+            En iyi getiri ile karşılaştırma: {format_turkish_percent(percentage_fund, 1)}
             <p>{" ★ EN İYİ GETİRİ" if best_product == "Yatırım Fonu" else ""}</p>
         </div>
     </div>
@@ -536,6 +586,15 @@ if duration_days <= 365:
     ax.set_xlabel('Gün')
     ax.set_ylabel('Tutar (₺)')
     ax.set_title('Yatırımın tahmini performansı')
+    
+    # Format y-axis with Turkish number format
+    from matplotlib.ticker import FuncFormatter
+    
+    def turkish_currency_formatter(x, pos):
+        return f'₺{format_turkish(x, 0)}'
+    
+    ax.yaxis.set_major_formatter(FuncFormatter(turkish_currency_formatter))
+    
     ax.legend()
     ax.grid(True, linestyle='--', alpha=0.7)
     
@@ -559,7 +618,7 @@ best_choice_explanation = {
 st.markdown(f"""
 <div style="background-color: rgba(44, 19, 32, 0.05); padding: 1.5rem; border-radius: 10px; margin-top: 1rem; border-left: 5px solid {colors["dark_purple"]};">
     <h3>Tavsiye</h3>
-    <p><strong>{best_product}</strong>'nin {duration_days} gün içinde <strong>₺{results[best_product]:.2f}</strong> ile en yüksek getiriyi sağlaması öngörülüyor.</p>
+    <p><strong>{best_product}</strong>'nin {format_turkish(duration_days, 0)} gün içinde <strong>₺{format_turkish(results[best_product])}</strong> ile en yüksek getiriyi sağlaması öngörülüyor.</p>
     <p>{best_choice_explanation[best_product]}</p>
     <p>Geçmiş performansın gelecekteki sonuçları garanti etmediğini, özellikle piyasa volatilitesine tabi olabilecek yatırım fonu seçeneği için, unutmayın.</p>
 </div>
