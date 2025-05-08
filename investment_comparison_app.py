@@ -50,12 +50,12 @@ st.markdown(f"""
         margin-bottom: 1rem;
     }}
     
-    .product-a-card {{
+    .product-b-card {{
         background-color: rgba(11, 110, 79, 0.1);
         border-left: 5px solid {colors["dartmouth_green"]};
     }}
     
-    .product-b-card {{
+    .product-a-card {{
         background-color: rgba(53, 39, 221, 0.1);
         border-left: 5px solid {colors["chrysler_blue"]};
     }}
