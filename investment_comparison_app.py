@@ -275,13 +275,13 @@ duration_days = st.sidebar.number_input(
 st.sidebar.markdown("---")
 
 # Fixed Income Product A - Gecelik Mevduat
-st.sidebar.markdown("<h3 style='color: {}'>Gecelik Mevduat</h3>".format(colors["dartmouth_green"]), unsafe_allow_html=True)
+st.sidebar.markdown("<h3 style='color: {}'>Gecelik Mevduat</h3>".format(colors["chrysler_blue"]), unsafe_allow_html=True)
 
 interest_rate_a = st.sidebar.number_input(
     "Faiz Oranı (%)",
     min_value=0.0,
     max_value=90.0,
-    value=48.00,
+    value=45.50,
     step=0.05,
     key="interest_a"
 )
@@ -308,13 +308,13 @@ tax_rate_a = st.sidebar.number_input(
 st.sidebar.markdown("---")
 
 # Fixed Income Product B - Gecelik Repo
-st.sidebar.markdown("<h3 style='color: {}'>Gecelik Repo</h3>".format(colors["chrysler_blue"]), unsafe_allow_html=True)
+st.sidebar.markdown("<h3 style='color: {}'>Gecelik Repo</h3>".format(colors["dartmouth_green"]), unsafe_allow_html=True)
 
 interest_rate_b = st.sidebar.number_input(
     "Faiz Oranı (%)",
     min_value=0.0,
     max_value=90.0,
-    value=46.0,
+    value=45.0,
     step=0.05,
     key="interest_b"
 )
@@ -579,8 +579,8 @@ if duration_days <= 365:
     fig, ax = plt.figure(figsize=(10, 5)), plt.axes()
     
     # Plot with colors from our palette
-    ax.plot(range(duration_days+1), growth_a, color=colors["dartmouth_green"], label="Gecelik Mevduat", linewidth=2)
-    ax.plot(range(duration_days+1), growth_b, color=colors["chrysler_blue"], label="Gecelik Repo", linewidth=2)
+    ax.plot(range(duration_days+1), growth_a, color=colors["chrysler_blue"], label="Gecelik Mevduat", linewidth=2)
+    ax.plot(range(duration_days+1), growth_b, color=colors["dartmouth_green"], label="Gecelik Repo", linewidth=2)
     ax.plot(range(duration_days+1), growth_fund, color=colors["sandy_brown"], label=f"{selected_ticker}", linewidth=2)
     
     ax.set_xlabel('Gün')
