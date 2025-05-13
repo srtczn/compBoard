@@ -11,8 +11,24 @@ from matplotlib.ticker import FuncFormatter
 # Set page configuration
 st.set_page_config(
     page_title="Fon Karşılaştırma",
+    page_icon="📊",
     layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
 )
+
+# Hide the native navigation
+st.markdown("""
+<style>
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
 
 # Reuse the same color palette
 colors = {
@@ -201,6 +217,14 @@ logo_path = "assets/logo.webp"
 if os.path.exists(logo_path):
     logo = Image.open(logo_path)
     st.sidebar.image(logo, use_container_width=True)
+else:
+    st.sidebar.image("https://i.ibb.co/0jQ5YtL/logo.png", width=200)
+
+# Custom navigation
+st.sidebar.markdown("---")  # Add a separator
+st.sidebar.markdown("### Navigation")
+st.sidebar.page_link("main.py", label="🏦 Mevduat-Fon Karşılaştırma")
+st.sidebar.page_link("pages/funds.py", label="📊 Fon Karşılaştırma")
 
 # Sidebar inputs
 st.sidebar.markdown("<h2 class='section-header'>Yatırım Bilgileri</h2>", unsafe_allow_html=True)
