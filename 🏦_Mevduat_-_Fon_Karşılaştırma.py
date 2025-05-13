@@ -9,10 +9,12 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import locale
 
-# Set page configuration
+# Set page configuration with custom name and icon
 st.set_page_config(
-    page_title="Mevduat-Fon Karşılaştırma",
+    page_title="🏦 Mevduat-Fon Karşılaştırma",
+    page_icon="🏦",
     layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Updated color palette 
@@ -628,4 +630,4 @@ st.markdown(f"""
 <div style="font-size: 0.8rem; color: {colors["dark_purple"]}; text-align: center; margin-top: 2rem;">
     <p>Mundi Getiri Hesaplama v1.0 | <a href="https://github.com/srtczn/compBoard" target="_blank">GitHub</a></p>
 </div>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True) 
