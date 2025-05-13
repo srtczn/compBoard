@@ -11,7 +11,7 @@ import locale
 
 # Set page configuration
 st.set_page_config(
-    page_title="Mundi Getiri Karşılaştırma",
+    page_title="Mevduat-Fon Karşılaştırma",
     layout="wide",
 )
 
@@ -243,24 +243,23 @@ latest_returns = dict(zip(fund_data['Fon Kodu'], fund_data['Değişim']))
 # Create a description for each fund (using Fon Adı from data)
 fund_descriptions = dict(zip(fund_data['Fon Kodu'], fund_data['Fon Adı']))
 
-# Add logo to the top of the sidebar
+# Add logo to the sidebar
 logo_path = "assets/logo.webp"
 if os.path.exists(logo_path):
     logo = Image.open(logo_path)
     st.sidebar.image(logo, use_container_width=True)
-else:
-    st.sidebar.warning("Logo not found at: " + logo_path)
 
 # Create sidebar for inputs
 st.sidebar.markdown("<h2 class='section-header'>Hesaplama Aracı:</h2>", unsafe_allow_html=True)
 
-# Initial investment and duration
-initial_investment = st.sidebar.number_input(
+# Investment amount input
+investment_amount = st.sidebar.number_input(
     "Yatırım Tutarı (₺)",
-    min_value=100,
-    max_value=100000000,
+    min_value=1000,
+    max_value=10000000,
     value=10000,
-    step=1
+    step=1000,
+    format="%d"
 )
 
 duration_days = st.sidebar.number_input(
@@ -401,11 +400,11 @@ daily_commission_rate_a = commission_rate_a_decimal / 365
 tax_rate_a_decimal = tax_rate_a / 100
 
 # Calculate daily interest for the investment period
-future_value_a = initial_investment * (1 + daily_rate_a) ** duration_days
-gross_return_a = future_value_a - initial_investment
+future_value_a = investment_amount * (1 + daily_rate_a) ** duration_days
+gross_return_a = future_value_a - investment_amount
 
 # Calculate commission using the daily rate model as requested
-commission_a = initial_investment * daily_commission_rate_a * duration_days
+commission_a = investment_amount * daily_commission_rate_a * duration_days
 
 # Calculate BSMV (5% of commission)
 bsmv_a = commission_a * bsmv_rate
@@ -415,7 +414,7 @@ tax_a = gross_return_a * tax_rate_a_decimal
 
 # Calculate final net return
 net_return_a = gross_return_a - commission_a - bsmv_a - tax_a
-final_balance_a = initial_investment + net_return_a
+final_balance_a = investment_amount + net_return_a
 
 # Fixed Income Product B - Gecelik Repo with daily compounding
 interest_rate_b_decimal = interest_rate_b / 100
@@ -425,11 +424,11 @@ daily_commission_rate_b = commission_rate_b_decimal / 365
 tax_rate_b_decimal = tax_rate_b / 100
 
 # Calculate daily interest for the investment period
-future_value_b = initial_investment * (1 + daily_rate_b) ** duration_days
-gross_return_b = future_value_b - initial_investment
+future_value_b = investment_amount * (1 + daily_rate_b) ** duration_days
+gross_return_b = future_value_b - investment_amount
 
 # Calculate commission using the daily rate model
-commission_b = initial_investment * daily_commission_rate_b * duration_days
+commission_b = investment_amount * daily_commission_rate_b * duration_days
 
 # Calculate BSMV (5% of commission)
 bsmv_b = commission_b * bsmv_rate
@@ -439,12 +438,12 @@ tax_b = gross_return_b * tax_rate_b_decimal
 
 # Calculate final net return
 net_return_b = gross_return_b - commission_b - bsmv_b - tax_b
-final_balance_b = initial_investment + net_return_b
+final_balance_b = investment_amount + net_return_b
 
 # Fund Product - Yatırım Fonu
-fund_future_value = initial_investment * (1 + latest_return) ** duration_days
-fund_return = fund_future_value - initial_investment
-final_balance_fund = initial_investment + fund_return
+fund_future_value = investment_amount * (1 + latest_return) ** duration_days
+fund_return = fund_future_value - investment_amount
+final_balance_fund = investment_amount + fund_return
 
 # Find the best performing product
 results = {
@@ -543,31 +542,31 @@ def calculate_growth(days):
     for d in range(days+1):
         # For day 0, just use initial investment
         if d == 0:
-            growth_a.append(initial_investment)
-            growth_b.append(initial_investment)
-            growth_fund.append(initial_investment)
+            growth_a.append(investment_amount)
+            growth_b.append(investment_amount)
+            growth_fund.append(investment_amount)
             continue
         
         # Calculate daily growth for Product A - Gecelik Mevduat
-        interest_earned_a = initial_investment * (1 + daily_rate_a) ** d - initial_investment
-        commission_cost_a = initial_investment * daily_commission_rate_a * d
+        interest_earned_a = investment_amount * (1 + daily_rate_a) ** d - investment_amount
+        commission_cost_a = investment_amount * daily_commission_rate_a * d
         bsmv_cost_a = commission_cost_a * bsmv_rate
         # Stopaj is calculated directly on gross interest
         tax_cost_a = interest_earned_a * tax_rate_a_decimal
-        net_value_a = initial_investment + interest_earned_a - commission_cost_a - bsmv_cost_a - tax_cost_a
+        net_value_a = investment_amount + interest_earned_a - commission_cost_a - bsmv_cost_a - tax_cost_a
         growth_a.append(net_value_a)
         
         # Calculate daily growth for Product B - Gecelik Repo
-        interest_earned_b = initial_investment * (1 + daily_rate_b) ** d - initial_investment
-        commission_cost_b = initial_investment * daily_commission_rate_b * d
+        interest_earned_b = investment_amount * (1 + daily_rate_b) ** d - investment_amount
+        commission_cost_b = investment_amount * daily_commission_rate_b * d
         bsmv_cost_b = commission_cost_b * bsmv_rate
         # Stopaj is calculated directly on gross interest
         tax_cost_b = interest_earned_b * tax_rate_b_decimal
-        net_value_b = initial_investment + interest_earned_b - commission_cost_b - bsmv_cost_b - tax_cost_b
+        net_value_b = investment_amount + interest_earned_b - commission_cost_b - bsmv_cost_b - tax_cost_b
         growth_b.append(net_value_b)
         
         # Calculate daily growth for the Fund product
-        fund_value = initial_investment * (1 + latest_return) ** d
+        fund_value = investment_amount * (1 + latest_return) ** d
         growth_fund.append(fund_value)
     
     return growth_a, growth_b, growth_fund
