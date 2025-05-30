@@ -280,7 +280,7 @@ st.sidebar.markdown("<h2 class='section-header'>Hesaplama Aracı:</h2>", unsafe_
 investment_amount = st.sidebar.number_input(
     "Yatırım Tutarı (₺)",
     min_value=1000,
-    max_value=10000000,
+    max_value=1000000000,
     value=10000,
     step=1000,
     format="%d"
